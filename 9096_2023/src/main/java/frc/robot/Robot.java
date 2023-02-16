@@ -5,27 +5,26 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 import com.revrobotics.CANSparkMax;
-import edu.wpi.first.wpilibj.PS4Controller;
-import com.ctre.phoenix.motorcontrol.ControlMode;
+import edu.wpi.first.wpilibj.Joystick;
 import com.ctre.phoenix.motorcontrol.InvertType;
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
+import com.ctre.phoenix.motorcontrol.can.*;
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 
-/**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the name of this class or
- * the package after creating this project, you must also update the build.gradle file in the
- * project.
- */
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
-  VictorSPX victorFL = new VictorSPX(10);
-  VictorSPX victorFR = new VictorSPX(11);
-  VictorSPX victorBR = new VictorSPX(12);
-  VictorSPX victorBL = new VictorSPX(13);
-  PS4Controller PS4c = new PS4Controller(0);
+  WPI_VictorSPX victorFL = new WPI_VictorSPX(10);
+  WPI_VictorSPX victorFR = new WPI_VictorSPX(11);
+  WPI_VictorSPX victorBR = new WPI_VictorSPX(12);
+  WPI_VictorSPX victorBL = new WPI_VictorSPX(13);
+  Joystick ctrl = new Joystick(0);
   CANSparkMax claw = new CANSparkMax(20, MotorType.kBrushless);
+  MotorControllerGroup left = new MotorControllerGroup(victorFL, victorBL);
+  MotorControllerGroup right = new MotorControllerGroup(victorFR, victorBR);
+  DifferentialDrive drive = new DifferentialDrive(left, right);
 
   private RobotContainer m_robotContainer;
 
@@ -36,9 +35,7 @@ public class Robot extends TimedRobot {
     victorFL.setInverted(true);
     victorBL.setInverted(InvertType.FollowMaster);
     victorBR.setInverted(InvertType.FollowMaster);
-    
-    // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
-    // autonomous chooser on the dashboard.
+
     m_robotContainer = new RobotContainer();
   }
 
@@ -77,16 +74,18 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    victorFR.set(ControlMode.PercentOutput, (0.5*PS4c.getLeftX() * 0.2f) + (PS4c.getRightY()*0.25));
-    victorFL.set(ControlMode.PercentOutput, (-0.5*PS4c.getLeftX() * 0.2f) + (PS4c.getRightY()*0.25));
- 
-    if (PS4c.getCircleButton()) {
+    //victorFL.set(ControlMode.PercentOutput, ctrl.getY());//(0.5*ctrl.getX() * 0.2f) + (ctrl.getY()*0.25));
+    //victorFR.set(ControlMode.PercentOutput, ctrl.getY());//(-0.5*ctrl.getX() * 0.2f) + (ctrl.getY())*0.25);
+    drive.arcadeDrive(ctrl.getY(), ctrl.getX());
+    //victorFL.set(0.5f);//(-0.5*ctrl.getX() * 0.2f) + (ctrl.getY())*0.25);
+    /*if (ctrl.get()) {
       claw.set(0.4f);
-    } else if (PS4c.getCrossButton()) {
+    } else if (ctrl.getCrossButton()) {
       claw.set(-0.4f);
     } else {
       claw.set(0.0f);
     }
+    */
 
   }
 
